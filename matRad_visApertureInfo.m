@@ -60,7 +60,7 @@ color(:,2) = 0;
 for i=1:numOfBeams
 
     % open new figure for every beam
-    figure
+    figure('name',['Collimator shapes of Beam ' num2str(i)],'NumberTitle','off')
 
     % get the MLC dimensions for this beam
     minX = apertureInfo.beam(i).MLCWindow(1);

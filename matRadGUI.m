@@ -546,6 +546,16 @@ function btnCalcDose_Callback(hObject, eventdata, handles)
 % http://stackoverflow.com/questions/24703962/trigger-celleditcallback-before-button-callback
 % http://www.mathworks.com/matlabcentral/newsreader/view_thread/332613
 % wait some time until the CallEditCallback is finished 
+
+% indicate that matRad is busy
+% change mouse pointer to hour glass 
+Figures = findobj('type','figure');
+set(Figures, 'pointer', 'watch'); 
+drawnow;
+% disable all active objects
+InterfaceObj = findobj(Figures,'Enable','on');
+set(InterfaceObj,'Enable','off');
+
 pause(0.1);
 uiTable_CellEditCallback(hObject,[],handles);
 pause(0.3);
@@ -587,6 +597,11 @@ elseif strcmp(evalin('base','pln.radiationMode'),'protons') || strcmp(evalin('ba
 end
 
 resultGUI = matRad_mxCalcDose(dij,ones(dij.totalNumOfBixels,1),evalin('base','cst'));
+
+% change state from busy to normal
+set(Figures, 'pointer', 'arrow');
+set(InterfaceObj,'Enable','on');
+
 % assign results to base worksapce
 assignin('base','dij',dij);
 assignin('base','resultGUI',resultGUI);
@@ -1146,6 +1161,15 @@ function btnOptimize_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% indicate that matRad is busy
+% change mouse pointer to hour glass 
+Figures = findobj('type','figure');
+set(Figures, 'pointer', 'watch'); 
+drawnow;
+% disable all active objects
+InterfaceObj = findobj(Figures,'Enable','on');
+set(InterfaceObj,'Enable','off');
+
 % wait until the table is updated
 pause(0.1);
 uiTable_CellEditCallback(hObject,[],handles);
@@ -1188,19 +1212,11 @@ elseif handles.plane == 3
     set(handles.sliderSlice,'Value',ceil(pln.isoCenter(1,handles.plane)/ct.resolution.z));
 end
 
-%set some values
-handles.State=3;
-handles.SelectedDisplayOptionIdx=1;
-handles.SelectedDisplayOption='physicalDose';
-handles.SelectedBeam=1;
-UpdatePlot(handles);
-UpdateState(handles);
-
 % perform sequencing and dao
 %% sequencing
 if strcmp(pln.radiationMode,'photons') && (pln.runSequencing || pln.runDAO)
 %   resultGUI = matRad_xiaLeafSequencing(resultGUI,evalin('base','stf'),evalin('base','dij')...
-%       ,get(handles.editSequencingLevel,'Value'));
+%       ,str2num(get(handles.editSequencingLevel,'String')));
     resultGUI = matRad_engelLeafSequencing(resultGUI,evalin('base','stf'),evalin('base','dij')...
         ,str2num(get(handles.editSequencingLevel,'String')));
     assignin('base','resultGUI',resultGUI);
@@ -1210,10 +1226,24 @@ end
 if strcmp(pln.radiationMode,'photons') && pln.runDAO
    resultGUI = matRad_directApertureOptimization(evalin('base','dij'),evalin('base','cst')...
        ,resultGUI.apertureInfo,resultGUI,1);
-   matRad_visApertureInfo(resultGUI.apertureInfo);
    assignin('base','resultGUI',resultGUI);
 end
 
+if strcmp(pln.radiationMode,'photons') && (pln.runSequencing || pln.runDAO)
+   matRad_visApertureInfo(resultGUI.apertureInfo);
+end
+
+% change state from busy to normal
+set(Figures, 'pointer', 'arrow');
+set(InterfaceObj,'Enable','on');
+
+%set some values
+handles.State=3;
+handles.SelectedDisplayOptionIdx=1;
+handles.SelectedDisplayOption='physicalDose';
+handles.SelectedBeam=1;
+UpdatePlot(handles);
+UpdateState(handles);
 guidata(hObject,handles);
 
 
@@ -2175,6 +2205,16 @@ function btnSequencing_Callback(hObject, eventdata, handles)
 % hObject    handle to btnSequencing (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% indicate that matRad is busy
+% change mouse pointer to hour glass 
+Figures = findobj('type','figure');
+set(Figures, 'pointer', 'watch'); 
+drawnow;
+% disable all active objects
+InterfaceObj = findobj(Figures,'Enable','on');
+set(InterfaceObj,'Enable','off');
+
 StratificationLevel = str2num(get(handles.editSequencingLevel,'String'));
 resultGUI=evalin('base','resultGUI');
 pln = evalin('base','pln');
@@ -2196,6 +2236,10 @@ if strcmp(pln.radiationMode,'photons') && pln.runDAO
    matRad_visApertureInfo(resultGUI.apertureInfo);
    assignin('base','resultGUI',resultGUI);
 end
+
+% change state from busy to normal
+set(Figures, 'pointer', 'arrow');
+set(InterfaceObj,'Enable','on');
 
 guidata(hObject,handles);
 UpdatePlot(handles);
@@ -2344,3 +2388,20 @@ UpdatePlot(handles);
 guidata(hObject,handles);
 
 
+
+
+% --- Executes when user attempts to close figure1.
+function figure1_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+selection = questdlg('Do you really want to close matRad?',...
+                     'Close matRad',...
+                     'Yes','No','Yes');
+ switch selection,
+   case 'Yes',
+     delete(hObject);
+   case 'No'
+     return
+ end
