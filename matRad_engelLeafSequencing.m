@@ -60,7 +60,10 @@ if visBool
     screensize = get(0,'ScreenSize');
     xpos = ceil((screensize(3)-sz(2))/2); % center the figure on the screen horizontally
     ypos = ceil((screensize(4)-sz(1))/2); % center the figure on the screen vertically
-    seqFig = figure('position',[xpos,ypos,sz(2),sz(1)]);     
+    seqFig = figure('position',[xpos,ypos,sz(2),sz(1)]); 
+    % prevent closure of window and show busy state
+    set(seqFig,'CloseRequestFcn','');
+    set(seqFig,'pointer','watch');
 end
 
 offset = 0;
@@ -389,6 +392,12 @@ resultGUI.apertureInfo = matRad_sequencing2ApertureInfo(sequencing,stf);
 
 Tmp = matRad_mxCalcDose(dij,sequencing.w);
 resultGUI.physicalDose = Tmp.physicalDose;
+
+% revert busy state and enable close button
+if visBool
+    set(seqFig,'CloseRequestFcn',get(0,'DefaultFigureCloseRequestFcn'));
+    set(seqFig,'pointer','arrow');
+end
 
 % if weights exists from an former DAO remove it
 if isfield(resultGUI,'wDao')

@@ -1,0 +1,140 @@
+<deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
+  <configuration build-checksum="24556721" file="J:\stadlera\Github\matRad\matRad.prj" location="J:\stadlera\Github\matRad" name="matRad" preferred-package-location="J:\stadlera\Github\matRad\standalone\installer" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
+    <param.appname>matRad</param.appname>
+    <param.icon />
+    <param.icons />
+    <param.version>1.0</param.version>
+    <param.authnamewatermark>E0404</param.authnamewatermark>
+    <param.email>dummy@mail.com</param.email>
+    <param.company>DKFZ</param.company>
+    <param.summary>An open source multi-modality radiation treatment planning sytem</param.summary>
+    <param.description>matRad is an open source software for radiation treatment planning of intensity-modulated photon, proton, and carbon ion therapy. matRad is developed for educational and research purposes; it is entirely written in MATLAB.</param.description>
+    <param.screenshot>${PROJECT_ROOT}\dicomImport\matrad_logo.png</param.screenshot>
+    <param.guid />
+    <param.net.saved.interface />
+    <param.installpath.string>\DKFZ\matRad\</param.installpath.string>
+    <param.installpath.combo>option.installpath.programfiles</param.installpath.combo>
+    <param.logo />
+    <param.install.notes />
+    <param.intermediate>J:\stadlera\Github\standalone\test</param.intermediate>
+    <param.files.only>J:\stadlera\Github\standalone\user</param.files.only>
+    <param.output>J:\stadlera\Github\standalone\installer</param.output>
+    <param.enable.clean.build>false</param.enable.clean.build>
+    <param.user.defined.mcr.options />
+    <param.embed.ctf>true</param.embed.ctf>
+    <param.target.type>subtarget.standalone</param.target.type>
+    <param.support.packages />
+    <param.required.mcr.products>
+      <item>35000</item>
+      <item>35010</item>
+      <item>35001</item>
+    </param.required.mcr.products>
+    <param.web.mcr>true</param.web.mcr>
+    <param.package.mcr>false</param.package.mcr>
+    <param.no.mcr>false</param.no.mcr>
+    <param.web.mcr.name>MyAppInstaller_web</param.web.mcr.name>
+    <param.package.mcr.name>MyAppInstaller_mcr</param.package.mcr.name>
+    <param.no.mcr.name>MyAppInstaller_app</param.no.mcr.name>
+    <param.windows.command.prompt>true</param.windows.command.prompt>
+    <param.create.log>true</param.create.log>
+    <param.log.file>log</param.log.file>
+    <unset>
+      <param.icon />
+      <param.icons />
+      <param.version />
+      <param.guid />
+      <param.net.saved.interface />
+      <param.installpath.string />
+      <param.installpath.combo />
+      <param.logo />
+      <param.enable.clean.build />
+      <param.user.defined.mcr.options />
+      <param.embed.ctf />
+      <param.target.type />
+      <param.support.packages />
+      <param.web.mcr />
+      <param.package.mcr />
+      <param.no.mcr />
+      <param.web.mcr.name />
+      <param.package.mcr.name />
+      <param.no.mcr.name />
+      <param.windows.command.prompt />
+    </unset>
+    <fileset.main>
+      <file>${PROJECT_ROOT}\matRadGUI.m</file>
+    </fileset.main>
+    <fileset.resources>
+      <file>${PROJECT_ROOT}\carbonBaseData.mat</file>
+      <file>${PROJECT_ROOT}\dicomImport\DKFZ_Logo.png</file>
+      <file>${PROJECT_ROOT}\dicomImport\hlutDefault.mat</file>
+      <file>${PROJECT_ROOT}\dicomImport\matRad_calcWaterEqD.m</file>
+      <file>${PROJECT_ROOT}\dicomImport\matRad_convRtssContours2Indices.m</file>
+      <file>${PROJECT_ROOT}\dicomImport\matRad_createCst.m</file>
+      <file>${PROJECT_ROOT}\dicomImport\matRad_importDicom.m</file>
+      <file>${PROJECT_ROOT}\dicomImport\matRad_importDicomCt.m</file>
+      <file>${PROJECT_ROOT}\dicomImport\matRad_importDicomGUI.fig</file>
+      <file>${PROJECT_ROOT}\dicomImport\matRad_importDicomGUI.m</file>
+      <file>${PROJECT_ROOT}\dicomImport\matRad_importDicomRtss.m</file>
+      <file>${PROJECT_ROOT}\dicomImport\matRad_interpCtCube.m</file>
+      <file>${PROJECT_ROOT}\dicomImport\matrad_logo.png</file>
+      <file>${PROJECT_ROOT}\dicomImport\matRad_progress.m</file>
+      <file>${PROJECT_ROOT}\dicomImport\matRad_scanDicomImportFolder.m</file>
+      <file>${PROJECT_ROOT}\matRad_addMargin.m</file>
+      <file>${PROJECT_ROOT}\matRad_bioObjFunc.m</file>
+      <file>${PROJECT_ROOT}\matRad_bioObjFuncRBExD.m</file>
+      <file>${PROJECT_ROOT}\matRad_calcDVH.m</file>
+      <file>${PROJECT_ROOT}\matRad_calcLQParameter.m</file>
+      <file>${PROJECT_ROOT}\matRad_calcParticleDose.m</file>
+      <file>${PROJECT_ROOT}\matRad_calcParticleDoseBixel.m</file>
+      <file>${PROJECT_ROOT}\matRad_calcPhotonDose.m</file>
+      <file>${PROJECT_ROOT}\matRad_calcPhotonDoseBixel.m</file>
+      <file>${PROJECT_ROOT}\matRad_calcRadGeoDists.m</file>
+      <file>${PROJECT_ROOT}\matRad_daoApertureInfo2Vec.m</file>
+      <file>${PROJECT_ROOT}\matRad_daoObjFunc.m</file>
+      <file>${PROJECT_ROOT}\matRad_daoProjectionFunction.m</file>
+      <file>${PROJECT_ROOT}\matRad_daoVec2ApertureInfo.m</file>
+      <file>${PROJECT_ROOT}\matRad_directApertureOptimization.m</file>
+      <file>${PROJECT_ROOT}\matRad_engelLeafSequencing.m</file>
+      <file>${PROJECT_ROOT}\matRad_fluenceOptimization.m</file>
+      <file>${PROJECT_ROOT}\matRad_generateStf.m</file>
+      <file>${PROJECT_ROOT}\matRad_getIsoCenter.m</file>
+      <file>${PROJECT_ROOT}\matRad_mxCalcDose.m</file>
+      <file>${PROJECT_ROOT}\matRad_objFunc.m</file>
+      <file>${PROJECT_ROOT}\matRad_progress.m</file>
+      <file>${PROJECT_ROOT}\matRad_projectedLBFGS.m</file>
+      <file>${PROJECT_ROOT}\matRad_sequencing2ApertureInfo.m</file>
+      <file>${PROJECT_ROOT}\matRad_setOverlapPriorities.m</file>
+      <file>${PROJECT_ROOT}\matRad_siddonRayTracer.m</file>
+      <file>${PROJECT_ROOT}\matRad_visApertureInfo.m</file>
+      <file>${PROJECT_ROOT}\matRadGUI.fig</file>
+      <file>${PROJECT_ROOT}\photonPencilBeamKernels_6MV.mat</file>
+      <file>${PROJECT_ROOT}\protonBasedata.mat</file>
+    </fileset.resources>
+    <fileset.package />
+    <build-deliverables>
+      <file location="J:\stadlera\Github\standalone\test" name="matRad.exe" optional="false">J:\stadlera\Github\standalone\test\matRad.exe</file>
+      <file location="J:\stadlera\Github\standalone\test" name="readme.txt" optional="true">J:\stadlera\Github\standalone\test\readme.txt</file>
+      <file location="J:\stadlera\Github\standalone\test" name="splash.png" optional="false">J:\stadlera\Github\standalone\test\splash.png</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB</root>
+      <toolboxes />
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>6.1</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>false</matlab>
+    </platform>
+  </configuration>
+</deployment-project>
