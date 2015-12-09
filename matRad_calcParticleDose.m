@@ -49,11 +49,13 @@ if nargin < 5
     visBool = 0;
 end
 
-% initialize waitbar
-figureWait = waitbar(0,'calculate particle-ij matrice(s)...');
-% prevent closure of waitbar and show busy state
-set(figureWait,'CloseRequestFcn','');
-set(figureWait,'pointer','watch');
+if visBool
+    % initialize waitbar
+    figureWait = waitbar(0,'calculate particle-ij matrice(s)...');
+    % prevent closure of waitbar and show busy state
+    set(figureWait,'CloseRequestFcn','');
+    set(figureWait,'pointer','watch');
+end
 
 % meta information for dij
 dij.numOfBeams         = pln.numOfBeams;
@@ -204,7 +206,8 @@ for i = 1:dij.numOfBeams; % loop over all beams
                 % Display progress
                 matRad_progress(counter,dij.totalNumOfBixels);
                 % update waitbar only 100 times
-                if mod(counter,round(dij.totalNumOfBixels/100)) == 0
+                
+                if (mod(counter,round(dij.totalNumOfBixels/100)) == 0) && visBool 
                     waitbar(counter/dij.totalNumOfBixels);
                 end
                 % remember beam and  bixel number
@@ -258,4 +261,6 @@ for i = 1:dij.numOfBeams; % loop over all beams
         
     end
 end
-delete(figureWait);
+if visBool 
+    delete(figureWait);
+end
