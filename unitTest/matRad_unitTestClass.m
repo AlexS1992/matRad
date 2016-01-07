@@ -38,26 +38,50 @@ classdef matRad_unitTestClass < matlab.unittest.TestCase
 
     properties (TestParameter)
         % definition of relevant parameters for the test
-        radiationMode = struct{
         patient = {'BOXPHANTOM'};
+        SAD = {500,1000};
+        bixelWidth = {3,5}; 
+        gantryAngles = {0,120,240};
+        couchAngles = {0,5};
+        bioOptimization = {'none','effect','RBExD'};
+        numOfFractions = {1,10,20};
+        runSequencing = {0,1};
+        runDAO = {0,1};
+        stratification = {7,20};
     end
     
     methods(Test)
-        % test dose calculation for the given parameters
-        function doseCalculation(testCase,patient,radiationMode,bioOptimazation)
-            pln.
-            % load cst
-                
+        % test photon plan
+        function photonPlan(testCase,patient,SAD,bixelWidth,gantryAngles,couchAngles,...
+                            runSequencing,runDAO,stratification)
+            % set pln
+            pln.patient = patient;
+            pln.SAD = SAD;
+            pln.bixelWidth = bixelWidth;
+            pln.gantryAngles = gantryAngles;
+            pln.couchAngles = couchAngles;
+            pln.runSequencing = runSequencing;
+            pln.runDAO = runDAO;
+            
+            % load patient data and generate stf
+            load(pln.patient);
             stf = matRad_generateStf(ct,cst,pln);
-            if strcmp(pln.radiationMode,'photons')
-               dij = matRad_calcPhotonDose(ct,stf,pln,cst,0);
-            elseif  strcmp(pln.radiationMode,'protons') || ...
-                    strcmp(pln.radiationMode,'carbon')
-                    dij = matRad_calcParticleDose(ct,stf,pln,cst,0);
+            
+            % dose calculation
+            dij = matRad_calcPhotonDose(ct,stf,pln,cst);
+            
+            % sequecing
+            if strcmp(pln.radiationMode,'photons') && (pln.runSequencing || pln.runDAO)
+                resultGUI = matRad_engelLeafSequencing(resultGUI,stf,dij,stratification);
             end
-    
+            
+            % DAO
+            if strcmp(pln.radiationMode,'photons') && pln.runDAO
+                resultGUI = matRad_directApertureOptimization(dij,cst,resultGUI.apertureInfo,resultGUI);
+            end
+            
         end
-        
     end
+        
 end
-
+  

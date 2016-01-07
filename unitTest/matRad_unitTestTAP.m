@@ -1,7 +1,7 @@
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % unitTest script for call from Jenkins to create the .tap output
 % 
-% call to create a .tap output file
+% call to create a test suite:
 %  suite = TestSuite.fromClass(?matRad_unitTestClass)
 %
 % call with specific parameter value after creation of a test suite:
