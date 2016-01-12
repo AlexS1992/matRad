@@ -38,47 +38,61 @@ classdef matRad_unitTestClass < matlab.unittest.TestCase
 
     properties (TestParameter)
         % definition of relevant parameters for the test
-        patient = {'BOXPHANTOM'};
-        SAD = {500,1000};
-        bixelWidth = {3,5}; 
-        gantryAngles = {0,120,240};
-        couchAngles = {0,5};
-        bioOptimization = {'none','effect','RBExD'};
-        numOfFractions = {1,10,20};
-        runSequencing = {0,1};
-        runDAO = {0,1};
-        stratification = {7,20};
+        pln = struct('Plan1',struct('patient','BOXPHANTOM','bixelWidth',5,...
+                                    'gantryAngles','0','couchAngles','0',...
+                                    'radiationMode','photons','runDAO',0,...
+                                    'testID','1'),...
+                     'Plan2',struct('patient','BOXPHANTOM','bixelWidth',5,...
+                                    'gantryAngles','0','couchAngles','0',...
+                                    'radiationMode','photons','runDAO',1,...
+                                    'testID','2'))
+                     
+                                
     end
     
     methods(Test)
-        % test photon plan
-        function photonPlan(testCase,patient,SAD,bixelWidth,gantryAngles,couchAngles,...
-                            runSequencing,runDAO,stratification)
-            % set pln
-            pln.patient = patient;
-            pln.SAD = SAD;
-            pln.bixelWidth = bixelWidth;
-            pln.gantryAngles = gantryAngles;
-            pln.couchAngles = couchAngles;
-            pln.runSequencing = runSequencing;
-            pln.runDAO = runDAO;
+        % test plan
+        function testPlan(testCase,pln)
+            % load reference data
+            load(['matRad_referenceFile_' pln.testID '.mat']);
             
-            % load patient data and generate stf
+            % load patient data 
             load(pln.patient);
+            
+            % set rest of pln
+            pln.isoCenter       = matRad_getIsoCenter(cst,ct);
+            pln.numOfBeams      = numel(pln.gantryAngles);
+            pln.numOfVoxels     = numel(ct.cube);
+            pln.voxelDimensions = size(ct.cube);
+            pln.machine         = 'Generic';
+                
+            % generate steering file
             stf = matRad_generateStf(ct,cst,pln);
-            
-            % dose calculation
-            dij = matRad_calcPhotonDose(ct,stf,pln,cst);
-            
-            % sequecing
-            if strcmp(pln.radiationMode,'photons') && (pln.runSequencing || pln.runDAO)
-                resultGUI = matRad_engelLeafSequencing(resultGUI,stf,dij,stratification);
+
+            %% dose calculation
+            if strcmp(pln.radiationMode,'photons')
+                dij = matRad_calcPhotonDose(ct,stf,pln,cst);
+            elseif strcmp(pln.radiationMode,'protons') || strcmp(pln.radiationMode,'carbon')
+                    dij = matRad_calcParticleDose(ct,stf,pln,cst);
             end
-            
-            % DAO
+
+            %% inverse planning for imrt
+            resultGUI = matRad_fluenceOptimization(dij,cst,pln);
+
+            %% sequencing
+            if strcmp(pln.radiationMode,'photons')
+                resultGUI = matRad_engelLeafSequencing(resultGUI,stf,dij,15);
+            end
+
+            %% DAO
             if strcmp(pln.radiationMode,'photons') && pln.runDAO
                 resultGUI = matRad_directApertureOptimization(dij,cst,resultGUI.apertureInfo,resultGUI);
             end
+
+            %% quality indicators
+            resultGUI = matRad_calcQualityIndicators(resultGUI,cst);
+            
+            stats = matRad_verifyResultUnitTest(resultGUI_ref,resultGUI);
             
         end
     end

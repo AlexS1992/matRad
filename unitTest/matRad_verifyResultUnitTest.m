@@ -43,11 +43,11 @@ function[Stats] = matRad_verifyResultUnitTest(Reference,Result)
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     if numel(Reference)~=numel(Result)
-        warning('reference and result set are not having the same dimensions')
-        Stats = 0;
+        Stats = %implement CODES for different dimensions;
         return
     end
     
+    %fieldnames(Reference)~=fieldnames(Result) /and fieldnames!
     sField = fieldnames(Reference);
     
     for i=1:numel(sField)

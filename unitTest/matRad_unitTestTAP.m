@@ -38,6 +38,9 @@ import matlab.unittest.TestSuite
 import matlab.unittest.plugins.TAPPlugin
 import matlab.unittest.plugins.ToFile
 
+%add unit test as file path
+addpath('unitTest')
+
 %create test suite
 suite   = TestSuite.fromClass(?matRad_unitTestClass);
 
@@ -48,7 +51,7 @@ runner = TestRunner.withTextOutput;
 tapFile = 'matRad_unitTest.tap';
 
 %delete old output
-if exist(tapfile,'file')== 2
+if exist(tapFile,'file')== 2
 delete(tapFile);
 end
 
@@ -60,8 +63,8 @@ runner.addPlugin(plugin)
 result = runner.run(suite);
 
 %view in matlab
-%disp(fileread(tapFile))
+disp(fileread(tapFile))
 
-copyfile(tapFile, X);
+%copyfile(tapFile, X);
 %%
 exit;
