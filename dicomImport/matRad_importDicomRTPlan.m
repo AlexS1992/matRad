@@ -124,7 +124,7 @@ else
 end
 
 % extract field shapes
-if strcmp(radiationMode, 'photons')
+if strcmpi(radiationMode, 'photons')
     pln.Collimation = matRad_importFieldShapes(BeamSequence, BeamSeqNames);
 end
 

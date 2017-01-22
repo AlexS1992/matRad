@@ -28,9 +28,13 @@ function [stf, pln] = matRad_importDicomSteeringPhotons(pln)
 % LICENSE file.
 %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+stf = struct;
 % get fields possessing a field weight vector greater than 0
-Fields = pln.Collimation.Fields([pln.Collimation.Fields(:).Weight] > 0);
+if isfield(pln.Collimation,'Fields')
+    Fields = pln.Collimation.Fields([pln.Collimation.Fields(:).Weight] > 0);
+else 
+    return
+end
 
 [UniqueComb,ia,ib] = unique( vertcat([Fields(:).GantryAngle], [Fields(:).CouchAngle])','rows');
 
@@ -39,7 +43,6 @@ Fields = pln.Collimation.Fields([pln.Collimation.Fields(:).Weight] > 0);
 pln.gantryAngles = UniqueComb(:,1)';
 pln.couchAngles = UniqueComb(:,2)';
 
-stf = struct;
 % loop over all fields
 for i = 1:size(UniqueComb,1)
     % set necessary steering information 
