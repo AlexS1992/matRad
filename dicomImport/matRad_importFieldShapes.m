@@ -79,30 +79,37 @@ for i = 1:length(BeamSeqNames)
         counter = counter + 1;
         currControlPointElement = currBeamSeq.ControlPointSequence.(currControlPointSeqNames{j});      
         
-        % get the leaf position for every device
-        collimation.Fields(counter).LeafPos{length(currDeviceSeqNames),1} = [];
-        for k = 1:length(currDeviceSeqNames)
-            currLeafPos = currControlPointElement.BeamLimitingDevicePositionSequence.(currDeviceSeqNames{k}).LeafJawPositions;
-            
-            if (length(currLeafPos) ~= 2 * device(k).NumOfLeafs)
-                warning(['Number of leafs/jaws does not match given number of leaf/jaw positions in control point sequence ' ...
-                         currControlPointSeqNames{j} ' on beam sequence ' BeamSeqNames{i} ' for device ' ...
-                         device(k).DeviceType '. No field shape import performed!']);
-                return;
+        if isfield(currControlPointElement, 'BeamLimitingDevicePositionSequence')
+            % get the leaf position for every device
+            collimation.Fields(counter).LeafPos{length(currDeviceSeqNames),1} = [];
+            for k = 1:length(currDeviceSeqNames)
+                % beam limiting device position sequence has to be defined on
+                % the first control point and has to be defined on following
+                % points only if it changes
+                currLeafPos = currControlPointElement.BeamLimitingDevicePositionSequence.(currDeviceSeqNames{k}).LeafJawPositions;          
+
+                if (length(currLeafPos) ~= 2 * device(k).NumOfLeafs)
+                    warning(['Number of leafs/jaws does not match given number of leaf/jaw positions in control point sequence ' ...
+                             currControlPointSeqNames{j} ' on beam sequence ' BeamSeqNames{i} ' for device ' ...
+                             device(k).DeviceType '. No field shape import performed!']);
+                    return;
+                end
+                collimation.Fields(counter).LeafPos{k} = NaN*ones(device(k).NumOfLeafs,2);
+                collimation.Fields(counter).LeafPos{k}(:,1) = currLeafPos(1:device(k).NumOfLeafs);
+                collimation.Fields(counter).LeafPos{k}(:,2) = currLeafPos(device(k).NumOfLeafs+1:end); 
+
+                % find the total maximum extent of one beam (in any direction) 
+                maximumExtent = max(maximumExtent, max(abs(currLeafPos))); % check opening direction
+                % check direction perpendicular to the openening for MLC
+                if strncmpi(device(k).DeviceType,'MLC',3)
+                    ix = find(collimation.Fields(counter).LeafPos{k}(:,1) ~= collimation.Fields(counter).LeafPos{k}(:,2));
+                    upperEnd = max(abs(device(k).Limits(ix(1))));
+                    lowerEnd = max(abs(device(k).Limits(ix(end))));
+                    maximumExtent = max(maximumExtent,max(upperEnd, lowerEnd));
+                end
             end
-            collimation.Fields(counter).LeafPos{k} = NaN*ones(device(k).NumOfLeafs,2);
-            collimation.Fields(counter).LeafPos{k}(:,1) = currLeafPos(1:device(k).NumOfLeafs);
-            collimation.Fields(counter).LeafPos{k}(:,2) = currLeafPos(device(k).NumOfLeafs+1:end); 
-            
-            % find the total maximum extent of one beam (in any direction) 
-            maximumExtent = max(maximumExtent, max(abs(currLeafPos))); % check opening direction
-            % check direction perpendicular to the openening for MLC
-            if strncmpi(device(k).DeviceType,'MLC',3)
-                ix = find(collimation.Fields(counter).LeafPos{k}(:,1) ~= collimation.Fields(counter).LeafPos{k}(:,2));
-                upperEnd = max(abs(device(k).Limits(ix(1))));
-                lowerEnd = max(abs(device(k).Limits(ix(end))));
-                maximumExtent = max(maximumExtent,max(upperEnd, lowerEnd));
-            end
+        else
+            collimation.Fields(counter) = collimation.Fields(counter - 1);
         end
         
         % get field meta information
@@ -130,13 +137,14 @@ collimation.numOfFields = counter;
 % use same resolution for field shapes as for the kernel convolution in
 % photon dose calculation
 convResolution = .5; % [mm]
-convLimits = maximumExtent + convResolution;
+collimation.Limit = round(maximumExtent);
+shapeLimit = collimation.Limit / convResolution;
 
 % calculate field shapes from leaf positions
 counter = 0;
 for i = 1:length(collimation.Fields)
     counter = counter + 1;
-    shape = ones(2*convLimits/convResolution);
+    shape = ones(2*shapeLimit);
     beamIndex = collimation.FieldOfBeam(i).BeamIndex;
     for j = 1:length(currDeviceSeqNames)
         % check for ASYM and SYM jaws == type 1
@@ -155,22 +163,22 @@ for i = 1:length(collimation.Fields)
         end
         for k = 1:collimation.Devices{beamIndex}(j).NumOfLeafs
             % determine corner points of the open area
-            p1 = round((collimation.Fields(i).LeafPos{j}(k,1)+convLimits)/convResolution+1); 
-            p2 = round((collimation.Fields(i).LeafPos{j}(k,2)+convLimits)/convResolution+1);
+            p1 = round(collimation.Fields(i).LeafPos{j}(k,1)/convResolution+shapeLimit+1); 
+            p2 = round(collimation.Fields(i).LeafPos{j}(k,2)/convResolution+shapeLimit+1);
             if type == 2
-                p3 = round((collimation.Devices{beamIndex}(j).Limits(k)+convLimits)/convResolution+1);
-                p4 = round((collimation.Devices{beamIndex}(j).Limits(k+1)+convLimits)/convResolution+1);
+                p3 = round(collimation.Devices{beamIndex}(j).Limits(k)/convResolution+shapeLimit+1);
+                p4 = round(collimation.Devices{beamIndex}(j).Limits(k+1)/convResolution+shapeLimit+1);
             else % for one dimensional collimation (X/Y, ASYMX/ASYMY) other direction is fully open
                 p3 = 1;
-                p4 = 2*convLimits/convResolution;
+                p4 = 2*shapeLimit;
             end
 
             % set elements covered by the collimator to 0
             % differentiate between x and y direction
-            if (p1 > 0) && (p1 <= 2*convLimits/convResolution+1) && ...
-               (p2 > 0) && (p2 <= 2*convLimits/convResolution) && ...
-               (p3 > 0) && (p3 <= 2*convLimits/convResolution) && ...
-               (p4 > 0) && (p4 <= 2*convLimits/convResolution+1)
+            if (p1 > 0) && (p1 <= 2*shapeLimit+1) && ...
+               (p2 > 0) && (p2 <= 2*shapeLimit) && ...
+               (p3 > 0) && (p3 <= 2*shapeLimit) && ...
+               (p4 > 0) && (p4 <= 2*shapeLimit+1)
                 try
                     if strcmpi(collimation.Devices{beamIndex}(j).Direction, 'X')
                         shape(p3:(p4-1),1:(p1-1)) = 0;

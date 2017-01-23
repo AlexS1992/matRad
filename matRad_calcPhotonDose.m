@@ -91,11 +91,7 @@ V = unique(vertcat(V{:}));
 [yCoordsV_vox, xCoordsV_vox, zCoordsV_vox] = ind2sub(ct.cubeDim,V);
 
 % set lateral cutoff value
-if ~(strcmp(num2str(pln.bixelWidth),'field'))
-    lateralCutoff = 82; % [mm]
-else
-    lateralCutoff = 140; % [mm] due to the large field size
-end
+lateralCutoff = 82; % [mm]
 
 % toggle custom primary fluence on/off. if 0 we assume a homogeneous
 % primary fluence, if 1 we use measured radially symmetric data
@@ -110,10 +106,21 @@ catch
    error(['Could not find the following machine file: ' fileName ]); 
 end
 
-% Make a 2D grid extending +/-100mm with 0.5 mm resolution
-convLimits = 100; % [mm]
+% Use a resolution of 0.5 mm for convolution
 convResolution = .5; % [mm]
-[X,Z] = meshgrid(-convLimits:convResolution:convLimits-convResolution);   
+if strcmp(num2str(pln.bixelWidth),'field')
+    convLimits = pln.Collimation.Limit + lateralCutoff;
+else
+    convLimits = pln.bixelWidth + lateralCutoff;
+end
+% issue a warning if convLimits is greater than largest distance of the
+% precomputed kernels values
+if (convLimits > max(machine.data.kernelPos))
+    warning(['Size of the convolution matrix exceeds precomputed kernel value range,' ...
+             ' values beyond ' num2str(convLimits) ' mm lateral distance will be linearly extrapolated!'])
+end
+
+[X,Z] = meshgrid(-convLimits:convResolution:convLimits-convResolution); 
 
 % gaussian filter to model penumbra
 sigmaGauss = 2.123/convResolution; % [mm] / see diploma thesis siggel 4.1.2
@@ -136,7 +143,7 @@ counter = 0;
 
 fprintf('matRad: Photon dose calculation...\n');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-for i = 1:dij.numOfBeams; % loop over all beams
+for i = 1:dij.numOfBeams % loop over all beams
     
     fprintf(['Beam ' num2str(i) ' of ' num2str(dij.numOfBeams) ': \n']);
 
@@ -170,7 +177,7 @@ for i = 1:dij.numOfBeams; % loop over all beams
 
     % ray tracing
     fprintf(['matRad: calculate radiological depth cube...']);
-    [radDepthV,geoDistV] = matRad_rayTracing(stf(i),ct,V,rot_coordsV,lateralCutoff);
+    [radDepthV,geoDistV] = matRad_rayTracing(stf(i),ct,V,rot_coordsV,convLimits);
     fprintf('done \n');
     
     % get indices of voxels where ray tracing results are available
@@ -193,9 +200,9 @@ for i = 1:dij.numOfBeams; % loop over all beams
     kernel3 = machine.data.kernel(currSSDIx).kernel3;
 
     % Evaluate kernels for all distances, interpolate between values
-    kernel1Mx = interp1(kernelPos,kernel1,sqrt(X.^2+Z.^2));
-    kernel2Mx = interp1(kernelPos,kernel2,sqrt(X.^2+Z.^2));
-    kernel3Mx = interp1(kernelPos,kernel3,sqrt(X.^2+Z.^2));
+    kernel1Mx = interp1(kernelPos,kernel1,sqrt(X.^2+Z.^2),'linear','extrap');
+    kernel2Mx = interp1(kernelPos,kernel2,sqrt(X.^2+Z.^2),'linear','extrap');
+    kernel3Mx = interp1(kernelPos,kernel3,sqrt(X.^2+Z.^2),'linear','extrap');
     
     % convolution here if no custom primary fluence and no field based dose calc
     if ~useCustomPrimFluenceBool && ~(strcmp(num2str(pln.bixelWidth),'field'))
@@ -232,7 +239,11 @@ for i = 1:dij.numOfBeams; % loop over all beams
             
             % get the field if field based dose calculation
             if strcmp(num2str(pln.bixelWidth),'field')
-                Fx = stf(i).ray(j).shape;
+                convSize = size(X,1);
+                Fx = zeros(convSize,convSize);
+                shapeLimit = pln.Collimation.Limit / convResolution;
+                shapeRange = convSize/2 - shapeLimit : convSize/2 + shapeLimit - 1;
+                Fx(shapeRange, shapeRange) = stf(i).ray(j).shape;
             
             % apply the primary fluence to the field
             elseif useCustomPrimFluenceBool
@@ -285,7 +296,7 @@ for i = 1:dij.numOfBeams; % loop over all beams
                                                                stf(i).ray(j).targetPoint_bev, ...
                                                                machine.meta.SAD, ...
                                                                radDepthIx, ...
-                                                               lateralCutoff);
+                                                               convLimits);
 
         % calculate photon dose for beam i and bixel j
         bixelDose = matRad_calcPhotonDoseBixel(machine.meta.SAD,machine.data.m,...
